@@ -3,44 +3,38 @@ package com.lelestacia.transactionmanagement
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.lelestacia.transactionmanagement.ui.route.Screen
+import com.lelestacia.transactionmanagement.ui.screen.dashboard.DashboardScreen
+import com.lelestacia.transactionmanagement.ui.screen.dashboard.DashboardViewModel
 import com.lelestacia.transactionmanagement.ui.theme.TransactionManagementTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             TransactionManagementTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
+                val navController: NavHostController = rememberNavController()
+
+                NavHost(navController = navController, startDestination = Screen.Home.route) {
+                    composable(Screen.Home.route) {
+                        val vm = hiltViewModel<DashboardViewModel>()
+                        val transactions by vm.transactions.collectAsState()
+                        DashboardScreen(
+                            transactions = transactions,
+                            onTransactionClicked = {}
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TransactionManagementTheme {
-        Greeting("Android")
     }
 }
