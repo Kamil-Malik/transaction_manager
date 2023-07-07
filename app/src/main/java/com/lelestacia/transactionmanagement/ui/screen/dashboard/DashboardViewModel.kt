@@ -3,7 +3,7 @@ package com.lelestacia.transactionmanagement.ui.screen.dashboard
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lelestacia.transactionmanagement.data.model.TransactionFirebaseModel
-import com.lelestacia.transactionmanagement.domain.usecases.DashboardUseCases
+import com.lelestacia.transactionmanagement.domain.usecases.dashboard.DashboardUseCases
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

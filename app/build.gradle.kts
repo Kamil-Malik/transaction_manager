@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.lelestacia.transactionmanagement"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.lelestacia.transactionmanagement"
         minSdk = 24
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -64,16 +64,16 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.7.2")
 
     //  Compose
-    implementation(platform("androidx.compose:compose-bom:2022.10.00"))
+    implementation(platform("androidx.compose:compose-bom:2023.06.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material3:material3:1.2.0-alpha03")
     implementation("androidx.compose.material:material-icons-extended")
 
     //  Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.1.1"))
-    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-firestore-ktx")
 
     //  Junit and Android Junit
     testImplementation("junit:junit:4.13.2")
@@ -94,7 +94,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycle_version")
 
     //  Coroutine
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.2")
 
     //  Hilt
     implementation("com.google.dagger:hilt-android:2.46.1")
@@ -105,7 +106,9 @@ dependencies {
     implementation("com.jakewharton.timber:timber:5.0.1")
 
     //  Navigation
-    val nav_version = "2.6.0"
+    val nav_version = "2.7.0-beta02"
     implementation("androidx.navigation:navigation-compose:$nav_version")
 
+    //  Date Time Formatter
+    implementation("com.github.sidhuparas:SimpleDate:2.1.0")
 }

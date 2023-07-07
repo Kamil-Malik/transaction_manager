@@ -5,4 +5,5 @@ import kotlinx.coroutines.flow.Flow
 
 interface FirestoreDataSource {
     fun getListOfTransaction(): Flow<List<TransactionFirebaseModel>>
+    suspend fun uploadTransaction(transaction: TransactionFirebaseModel)
 }
