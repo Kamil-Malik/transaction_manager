@@ -6,6 +6,7 @@
     <string name="error_message_invalid_phone_number_format">Phone Number is using invalid format</string>
     <string name="error_message_date_is_zero">Date cannot be empty</string>
     <string name="error_message_date_is_invalid">Date is not represented with valid value</string>
+    <string name="error_message_connection_problem">Please check your internet and try again</string>
     <string name="error_message_unknown">Unknown error</string>
 
     <string name="success_message_transaction_uploaded">Transaction successfully uploaded</string>
