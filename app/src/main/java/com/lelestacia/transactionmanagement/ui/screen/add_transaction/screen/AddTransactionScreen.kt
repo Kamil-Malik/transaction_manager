@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
@@ -43,8 +45,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lelestacia.transactionmanagement.R
+import com.lelestacia.transactionmanagement.domain.model.TransactionModel
 import com.lelestacia.transactionmanagement.ui.screen.add_transaction.event.AddTransactionScreenEvent
 import com.lelestacia.transactionmanagement.ui.screen.add_transaction.event.OnAdditionalInformationChanged
 import com.lelestacia.transactionmanagement.ui.screen.add_transaction.event.OnBuyerNameChanged
@@ -54,6 +58,7 @@ import com.lelestacia.transactionmanagement.ui.screen.add_transaction.event.OnTr
 import com.lelestacia.transactionmanagement.ui.screen.add_transaction.event.OnUploadTransaction
 import com.lelestacia.transactionmanagement.ui.screen.add_transaction.event.OnWhatsappContactPhoneNumberChanged
 import com.lelestacia.transactionmanagement.ui.screen.add_transaction.state.AddTransactionScreenState
+import com.lelestacia.transactionmanagement.ui.theme.TransactionManagementTheme
 import com.lelestacia.transactionmanagement.util.Resource
 import com.parassidhu.simpledate.toDateStandard
 import kotlinx.coroutines.delay
@@ -71,336 +76,467 @@ fun AddTransactionScreen(
         SnackbarHostState()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text(text = "Add new transaction") })
-        },
-        snackbarHost = {
-            SnackbarHost(hostState = snackBarHostState)
-        }
-    ) { paddingValues ->
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
-        ) {
-
-            val datePickerState = rememberDatePickerState()
-            val onDatePickerStateChanged: () -> Unit = {
-                onEvent(OnDatePickerStateChanged)
+    Surface {
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text(text = "Add new transaction") })
+            },
+            snackbarHost = {
+                SnackbarHost(hostState = snackBarHostState)
             }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
+        ) { paddingValues ->
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .padding(horizontal = 16.dp)
             ) {
-                val transactionDate: String =
-                    if (state.transaction.transactionDate == 0.toLong()) {
-                        "Date haven't been selected"
-                    } else {
-                        Date(state.transaction.transactionDate).toDateStandard()
+
+                val datePickerState = rememberDatePickerState()
+                val onDatePickerStateChanged: () -> Unit = {
+                    onEvent(OnDatePickerStateChanged)
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    val transactionDate: String =
+                        if (state.transaction.transactionDate == 0.toLong()) {
+                            "Date haven't been selected"
+                        } else {
+                            Date(state.transaction.transactionDate).toDateStandard()
+                        }
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        OutlinedTextField(
+                            value = transactionDate,
+                            onValueChange = {},
+                            enabled = false,
+                            isError = state.transactionDateError != null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        AnimatedVisibility(visible = state.transactionDateError != null) {
+                            Text(
+                                text = state.transactionDateError
+                                    ?: stringResource(id = R.string.error_message_unknown),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
+                    IconButton(
+                        onClick = onDatePickerStateChanged
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.CalendarToday,
+                            contentDescription = "Open Calendar"
+                        )
+                    }
+                }
+
                 Column(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     OutlinedTextField(
-                        value = transactionDate,
-                        onValueChange = {},
-                        enabled = false,
-                        isError = state.transactionDateError != null,
+                        value = state.transaction.buyerName,
+                        onValueChange = { newBuyerName ->
+                            onEvent(OnBuyerNameChanged(newBuyerName))
+                        },
+                        label = { Text(text = "Buyer Name") },
+                        placeholder = {
+                            Text(
+                                text = "Insert Buyer name here",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null
+                            )
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Words,
+                            autoCorrect = false,
+                            imeAction = ImeAction.Next
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedLeadingIconColor = MaterialTheme.colorScheme.primary
+                        ),
+                        isError = state.buyerNameError != null,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    AnimatedVisibility(visible = state.transactionDateError != null) {
+
+                    AnimatedVisibility(visible = state.buyerNameError != null) {
                         Text(
-                            text = state.transactionDateError
+                            text = state.buyerNameError
                                 ?: stringResource(id = R.string.error_message_unknown),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
-                IconButton(
-                    onClick = onDatePickerStateChanged
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.CalendarToday,
-                        contentDescription = "Open Calendar"
-                    )
-                }
-            }
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = state.transaction.buyerName,
-                    onValueChange = { newBuyerName ->
-                        onEvent(OnBuyerNameChanged(newBuyerName))
-                    },
-                    label = { Text(text = "Buyer Name") },
-                    placeholder = {
-                        Text(
-                            text = "Insert Buyer name here",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = null
-                        )
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        capitalization = KeyboardCapitalization.Words,
-                        autoCorrect = false,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedLeadingIconColor = MaterialTheme.colorScheme.primary
-                    ),
-                    isError = state.buyerNameError != null,
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.fillMaxWidth()
-                )
-
-                AnimatedVisibility(visible = state.buyerNameError != null) {
-                    Text(
-                        text = state.buyerNameError
-                            ?: stringResource(id = R.string.error_message_unknown),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            Column(
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedTextField(
-                    value = state.transaction.contactPhoneNumber,
-                    onValueChange = { newPhoneNumber ->
-                        onEvent(OnContactPhoneNumberChanged(newPhoneNumber))
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Phone,
-                            contentDescription = null
-                        )
-                    },
-                    label = { Text(text = "Contact Phone Number") },
-                    placeholder = {
-                        Text(
-                            text = "Insert Contact Phone Number here",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(
-                                start = 4.dp
+                ) {
+                    OutlinedTextField(
+                        value = state.transaction.contactPhoneNumber,
+                        onValueChange = { newPhoneNumber ->
+                            onEvent(OnContactPhoneNumberChanged(newPhoneNumber))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Phone,
+                                contentDescription = null
                             )
-                        )
-                    },
-                    prefix = { Text(text = "+62") },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedLeadingIconColor = MaterialTheme.colorScheme.primary
-                    ),
-                    isError = state.contactPhoneNumberError != null,
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                AnimatedVisibility(visible = state.contactPhoneNumberError != null) {
-                    Text(
-                        text = state.contactPhoneNumberError
-                            ?: stringResource(id = R.string.error_message_unknown),
-                        color = MaterialTheme.colorScheme.error
+                        },
+                        label = { Text(text = "Contact Phone Number") },
+                        placeholder = {
+                            Text(
+                                text = "Insert Contact Phone Number here",
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.padding(
+                                    start = 4.dp
+                                )
+                            )
+                        },
+                        prefix = { Text(text = "+62") },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedLeadingIconColor = MaterialTheme.colorScheme.primary
+                        ),
+                        isError = state.contactPhoneNumberError != null,
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
                     )
-                }
-            }
 
-            val contactWhatsappPhoneNumber: String =
-                if (state.transaction.contactWhatsappNumber.isNullOrBlank()) {
-                    ""
-                } else {
-                    state.transaction.contactWhatsappNumber
+                    AnimatedVisibility(visible = state.contactPhoneNumberError != null) {
+                        Text(
+                            text = state.contactPhoneNumberError
+                                ?: stringResource(id = R.string.error_message_unknown),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
 
-            Column {
+                val contactWhatsappPhoneNumber: String =
+                    if (state.transaction.contactWhatsappNumber.isNullOrBlank()) {
+                        ""
+                    } else {
+                        state.transaction.contactWhatsappNumber
+                    }
+
+                Column {
+                    OutlinedTextField(
+                        value = contactWhatsappPhoneNumber,
+                        onValueChange = { newWhatsappPhoneNumber ->
+                            onEvent(OnWhatsappContactPhoneNumberChanged(newWhatsappPhoneNumber))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Whatsapp,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text(text = "Whatsapp Phone Number") },
+                        placeholder = {
+                            Text(
+                                text = "Optional",
+                                modifier = Modifier.padding(
+                                    start = 4.dp
+                                )
+                            )
+                        },
+                        prefix = { Text(text = "+62") },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedLeadingIconColor = MaterialTheme.colorScheme.primary
+                        ),
+                        isError = state.contactWhatsappPhoneNumberError != null,
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    AnimatedVisibility(visible = state.contactWhatsappPhoneNumberError != null) {
+                        Text(
+                            text = state.contactWhatsappPhoneNumberError
+                                ?: stringResource(id = R.string.error_message_unknown),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
                 OutlinedTextField(
-                    value = contactWhatsappPhoneNumber,
-                    onValueChange = { newWhatsappPhoneNumber ->
-                        onEvent(OnWhatsappContactPhoneNumberChanged(newWhatsappPhoneNumber))
+                    value = state.transaction.additionalInformation ?: "",
+                    onValueChange = { newAdditionalInformation ->
+                        onEvent(OnAdditionalInformationChanged(newAdditionalInformation))
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Default.Whatsapp,
+                            imageVector = Icons.Default.Notes,
                             contentDescription = null
                         )
                     },
-                    label = { Text(text = "Whatsapp Phone Number") },
-                    placeholder = {
-                        Text(
-                            text = "Optional",
-                            modifier = Modifier.padding(
-                                start = 4.dp
-                            )
-                        )
-                    },
-                    prefix = { Text(text = "+62") },
+                    label = { Text(text = "Additional Information") },
+                    placeholder = { Text(text = "Optional") },
                     keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Number,
-                        imeAction = ImeAction.Next
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedLeadingIconColor = MaterialTheme.colorScheme.primary
                     ),
-                    isError = state.contactWhatsappPhoneNumberError != null,
-                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                AnimatedVisibility(visible = state.contactWhatsappPhoneNumberError != null) {
-                    Text(
-                        text = state.contactWhatsappPhoneNumberError
-                            ?: stringResource(id = R.string.error_message_unknown),
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            OutlinedTextField(
-                value = state.transaction.additionalInformation ?: "",
-                onValueChange = { newAdditionalInformation ->
-                    onEvent(OnAdditionalInformationChanged(newAdditionalInformation))
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Notes,
-                        contentDescription = null
-                    )
-                },
-                label = { Text(text = "Additional Information") },
-                placeholder = { Text(text = "Optional") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
-                ),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedLeadingIconColor = MaterialTheme.colorScheme.primary
-                ),
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.onErrorContainer
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(text = "Cancel")
-                }
-                Button(
-                    onClick = { onEvent(OnUploadTransaction) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = "Upload Transaction")
-                }
-            }
-
-            AnimatedVisibility(visible = uploadTransactionResult !is Resource.None) {
-                when (uploadTransactionResult) {
-                    is Resource.Error -> Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(
-                            space = 8.dp,
-                            alignment = Alignment.CenterVertically
-                        )
+                    Button(
+                        onClick = onBack,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
                     ) {
-                        Text(
-                            text = uploadTransactionResult.message
-                                ?: stringResource(id = R.string.error_message_unknown)
-                        )
-                        Button(onClick = { onEvent(OnUploadTransaction) }) {
-                            Text(text = "Retry")
-                        }
+                        Text(text = "Cancel")
                     }
+                    Button(
+                        onClick = { onEvent(OnUploadTransaction) },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = "Upload Transaction")
+                    }
+                }
 
-                    Resource.Loading -> {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.weight(1f)
+                AnimatedVisibility(visible = uploadTransactionResult !is Resource.None) {
+                    when (uploadTransactionResult) {
+                        is Resource.Error -> Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(
+                                space = 4.dp,
+                                alignment = Alignment.CenterVertically
+                            ),
+                            modifier = Modifier.fillMaxSize()
                         ) {
-                            CircularProgressIndicator()
-                        }
-                    }
-
-                    Resource.None -> Unit
-                    is Resource.Success -> {
-                        LaunchedEffect(key1 = Unit) {
-                            snackBarHostState.showSnackbar(
-                                message = uploadTransactionResult.data as String,
-                                duration = SnackbarDuration.Short
+                            Text(
+                                text = uploadTransactionResult.message
+                                    ?: stringResource(id = R.string.error_message_unknown)
                             )
-                            delay(2000)
-                            onBack()
+                            Button(
+                                onClick = { onEvent(OnUploadTransaction) },
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(text = "Retry")
+                            }
+                        }
+
+                        Resource.Loading -> {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+
+                        Resource.None -> Unit
+                        is Resource.Success -> {
+                            LaunchedEffect(key1 = Unit) {
+                                snackBarHostState.showSnackbar(
+                                    message = uploadTransactionResult.data as String,
+                                    duration = SnackbarDuration.Short
+                                )
+                                delay(2000)
+                                onBack()
+                            }
                         }
                     }
                 }
-            }
 
-            AnimatedVisibility(visible = state.isDatePickerOpened) {
-                DatePickerDialog(
-                    onDismissRequest = onDatePickerStateChanged,
-                    confirmButton = {
-                        Button(
-                            onClick = {
-                                datePickerState.selectedDateMillis?.let { selectedDateMillis ->
-                                    onEvent(OnTransactionDateChanged(selectedDateMillis))
-                                    onDatePickerStateChanged()
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
-                        ) {
-                            Text(text = "Select Date")
-                        }
-                    },
-                    dismissButton = {
-                        Button(
-                            onClick = {
-                                onEvent(OnDatePickerStateChanged)
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.errorContainer,
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer
-                            ),
-                        ) {
-                            Text(text = "Cancel")
-                        }
-                    },
-                    content = {
-                        DatePicker(state = datePickerState)
-                    })
+                AnimatedVisibility(visible = state.isDatePickerOpened) {
+                    DatePickerDialog(
+                        onDismissRequest = onDatePickerStateChanged,
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    datePickerState.selectedDateMillis?.let { selectedDateMillis ->
+                                        onEvent(OnTransactionDateChanged(selectedDateMillis))
+                                        onDatePickerStateChanged()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            ) {
+                                Text(text = "Select Date")
+                            }
+                        },
+                        dismissButton = {
+                            Button(
+                                onClick = {
+                                    onEvent(OnDatePickerStateChanged)
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                                ),
+                            ) {
+                                Text(text = "Cancel")
+                            }
+                        },
+                        content = {
+                            DatePicker(state = datePickerState)
+                        })
+                }
             }
         }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAddTransactionScreenDayMode() {
+    TransactionManagementTheme(
+        darkTheme = false,
+        dynamicColor = true
+    ) {
+        AddTransactionScreen(
+            state = AddTransactionScreenState(),
+            onEvent = {},
+            onBack = {},
+            uploadTransactionResult = Resource.None
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAddTransactionScreenDayModeErrorOnFormValidation() {
+    TransactionManagementTheme(
+        darkTheme = false,
+        dynamicColor = true
+    ) {
+        AddTransactionScreen(
+            state = AddTransactionScreenState(
+                transaction = TransactionModel(
+                    transactionID = "",
+                    transactionDate = 0,
+                    buyerName = "",
+                    additionalInformation = null,
+                    contactPhoneNumber = "082259997760",
+                    contactWhatsappNumber = null
+                ),
+                buyerNameError = stringResource(id = R.string.error_message_buyer_name_is_empty),
+                contactPhoneNumberError = stringResource(id = R.string.error_message_phone_number_is_empty)
+            ),
+            onEvent = {},
+            onBack = {},
+            uploadTransactionResult = Resource.None
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAddTransactionScreenDayModeErrorOnAPI() {
+    TransactionManagementTheme(
+        darkTheme = false,
+        dynamicColor = true
+    ) {
+        AddTransactionScreen(
+            state = AddTransactionScreenState(),
+            onEvent = {},
+            onBack = {},
+            uploadTransactionResult = Resource.Error(
+                data = null,
+                message = stringResource(id = R.string.error_message_connection_problem)
+            )
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAddTransactionScreenDarkMode() {
+    TransactionManagementTheme(
+        darkTheme = true,
+        dynamicColor = true
+    ) {
+        AddTransactionScreen(
+            state = AddTransactionScreenState(),
+            onEvent = {},
+            onBack = {},
+            uploadTransactionResult = Resource.None
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAddTransactionScreenDarkModeErrorOnFormValidation() {
+    TransactionManagementTheme(
+        darkTheme = true,
+        dynamicColor = true
+    ) {
+        AddTransactionScreen(
+            state = AddTransactionScreenState(
+                transaction = TransactionModel(
+                    transactionID = "",
+                    transactionDate = 0,
+                    buyerName = "",
+                    additionalInformation = null,
+                    contactPhoneNumber = "082259997760",
+                    contactWhatsappNumber = null
+                ),
+                buyerNameError = stringResource(id = R.string.error_message_buyer_name_is_empty),
+                contactPhoneNumberError = stringResource(id = R.string.error_message_phone_number_is_empty)
+            ),
+            onEvent = {},
+            onBack = {},
+            uploadTransactionResult = Resource.None
+        )
+    }
+}
+
+@Preview
+@Composable
+fun PreviewAddTransactionScreenDarkModeErrorOnAPI() {
+    TransactionManagementTheme(
+        darkTheme = true,
+        dynamicColor = true
+    ) {
+        AddTransactionScreen(
+            state = AddTransactionScreenState(),
+            onEvent = {},
+            onBack = {},
+            uploadTransactionResult = Resource.Error(
+                data = null,
+                message = stringResource(id = R.string.error_message_connection_problem)
+            )
+        )
     }
 }
